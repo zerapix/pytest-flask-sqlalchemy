@@ -41,10 +41,12 @@ def _transaction(request, _db, mocker):
     # the codebase
     connection.force_close = connection.close
     transaction.force_rollback = transaction.rollback
+    session.force_remove = session.remove
 
     connection.close = lambda: None
     transaction.rollback = lambda: None
     session.close = lambda: None
+    session.remove = lambda: None
 
     # Begin a nested transaction (any new transactions created in the codebase
     # will be held until this outer transaction is committed or closed)
@@ -75,7 +77,7 @@ def _transaction(request, _db, mocker):
     @request.addfinalizer
     def teardown_transaction():
         # Delete the session
-        session.remove()
+        session.force_remove()
 
         # Rollback the transaction and return the connection to the pool
         transaction.force_rollback()
